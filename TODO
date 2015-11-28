@@ -1,0 +1,9 @@
+major
+-----
+ - Add options to start and stop spt with only one process
+
+misc
+----
+    $ grep -n 'TODO' spt.c
+
+# vim:ft=markdown:
