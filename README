@@ -25,7 +25,7 @@ See the man pages for additional details.
 
 Configuration
 -------------
-The configuration of dwm is done by creating a custom config.h
+The configuration of spt is done by creating a custom config.h
 and (re)compiling the source code.
 
 
