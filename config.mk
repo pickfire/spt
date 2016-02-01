@@ -1,5 +1,5 @@
 # spt version
-VERSION = 0.0
+VERSION = 0.1
 
 # Customize below to fit your system
 
@@ -15,7 +15,7 @@ LIBS = -L/usr/lib \
 
 # flags
 CPPFLAGS = -DVERSION=\"${VERSION}\"
-CFLAGS += -g -std=c99 -pedantic -Wall -O0 ${INCS} ${CPPFLAGS}
+CFLAGS += -g -std=c99 -pedantic -Wall -Os ${INCS} ${CPPFLAGS}
 LDFLAGS += -g ${LIBS}
 
 # compiler and linker
