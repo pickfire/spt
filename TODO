@@ -1,8 +1,9 @@
-major
------
- - Add options to start and stop spt with only one process
+1. Show remaining time to the next timer (using SIGUSR1)
+2. Add #ifdef to make libnotify an optional dependency
+3. Add more support for non-libnotify such as echo(1)
+4. Pause and continue the timer
 
-misc
+Misc
 ----
     $ grep -n 'TODO' spt.c
 

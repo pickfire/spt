@@ -12,12 +12,12 @@
 char *argv0;
 
 /* macros */
-#define LEN(a)        (sizeof(a) / sizeof(a)[0])
+#define LEN(a)        (sizeof(a) / sizeof(a[0]))
 
 typedef struct {
 	unsigned int tmr;
 	char *cmt;
-} Timer;
+} Timers;
 
 #include "config.h"
 
@@ -102,9 +102,9 @@ main(int argc, char *argv[])
 	} ARGEND;
 
 run:
-	notify_send(timer[i].cmt);
-	sleep(timer[i].tmr);
-	i + 1 >= LEN(timer) ? i = 0 : i++; /* i infinal loop */
+	notify_send(timers[i].cmt);
+	sleep(timers[i].tmr);
+	i + 1 >= LEN(timers) ? i = 0 : i++; /* i infinal loop */
 	goto run;
 
 	return 0;
