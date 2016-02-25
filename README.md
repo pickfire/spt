@@ -8,6 +8,7 @@ Features
 --------
 - Get the jobs done quicker than ever
 - Keeps you free like a dog
+- Able to show remaining time
 
 
 Installation

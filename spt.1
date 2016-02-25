@@ -12,6 +12,12 @@ spt \- simple pomodoro timer
 .B spt
 is a simple timer that uses pomodoro technique with desktop notification to
 double your efficiency.
+
+To check the remaining time, send USR1 signal to spt by:
+
+.RS
+.B pkill -USR1 spt
+.RE
 .SH OPTIONS
 .TP
 .BI \-e " notifyext"
@@ -36,8 +42,10 @@ with subsequent rests in between
 and
 followed by a long rest
 .RB ( "15 min." )
+.B in an infinite loop
 .SH EXAMPLES
 Use system notify_send and play a music without libnotify:
+
 .RS
 .B spt -e 'aplay alarm.wav' -n 'notify-send'
 .RE
