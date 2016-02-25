@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <signal.h>
 
 #include <libnotify/notify.h>
 
@@ -21,11 +22,14 @@ typedef struct {
 
 #include "config.h"
 
+int i, int timecount;
+
 /* function declarations */
 static void die(const char *errstr, ...);
 static void spawn(char *);
 static void notify_send(char *);
 static void usage(void);
+static void remaining_time(int);
 
 /* functions implementations */
 void
@@ -76,6 +80,25 @@ notify_send(char *cmt)
 }
 
 void
+remaining_time(int sigint)
+{
+	char remainingtext[17];
+	if (signal(SIGUSR1, SIG_IGN) != SIG_IGN) {
+		signal(SIGUSR1, remaining_time);
+	}
+
+	snprintf(
+		remainingtext,
+		17,
+		"Remaining: %02d:%02d\n",
+		(timers[i].tmr - timecount) / 60,
+		(timers[i].tmr - timecount) % 60
+	);
+
+	notify_send(remainingtext);
+}
+
+void
 usage(void)
 {
 	die("usage: %s [-e notifyext] [-n notifycmd] [-v]\n", argv0);
@@ -84,8 +107,6 @@ usage(void)
 int
 main(int argc, char *argv[])
 {
-	int i = 0;
-
 	ARGBEGIN {
 		case 'e':
 			notifyext = EARGF(usage());
@@ -101,9 +122,17 @@ main(int argc, char *argv[])
 			break;
 	} ARGEND;
 
+	if (signal(SIGUSR1, SIG_IGN) != SIG_IGN) {
+		signal(SIGUSR1, remaining_time);
+	}
+
 run:
 	notify_send(timers[i].cmt);
-	sleep(timers[i].tmr);
+
+	for (timecount = 0; timecount < timers[i].tmr; timecount++) {
+		sleep(1);
+	}
+
 	i + 1 >= LEN(timers) ? i = 0 : i++; /* i infinal loop */
 	goto run;
 
