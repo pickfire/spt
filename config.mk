@@ -2,16 +2,16 @@
 VERSION = 0.1
 
 # Customize below to fit your system
+#USE_LIBNOTIFY = -DUSE_LIBNOTIFY
+#LIBNOTIFY_CFLAGS =  `pkg-config --cflags libnotify`
+#LIBNOTIFY_LIBS = `pkg-config --libs libnotify`
 
 # paths
 PREFIX = /usr/local
 MANPREFIX = ${PREFIX}/share/man
-
 # includes and libs
-INCS = -I. -I/usr/include \
-       `pkg-config --cflags libnotify`
-LIBS = -L/usr/lib \
-       `pkg-config --libs libnotify`
+INCS = -I. -I/usr/include ${USE_LIBNOTIFY} ${LIBNOTIFY_CFLAGS}
+LIBS = -L/usr/lib ${LIBNOTIFY_LIBSS}
 
 # flags
 CPPFLAGS = -DVERSION=\"${VERSION}\"

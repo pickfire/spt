@@ -6,8 +6,6 @@
 #include <unistd.h>
 #include <signal.h>
 
-#include <libnotify/notify.h>
-
 #include "arg.h"
 
 char *argv0;
@@ -58,13 +56,7 @@ spawn(char *cmd)
 void
 notify_send(char *cmt)
 {
-	if (!strcmp(notifycmd, "libnotify")) { /* use libnotify */
-		notify_init("spt");
-		NotifyNotification *n = notify_notification_new("spt", cmt, "dialog-information");
-		notify_notification_show(n, NULL);
-		g_object_unref(G_OBJECT(n));
-		notify_uninit();
-	} else if (strcmp(notifycmd, "")) {
+	if (strcmp(notifycmd, "")) {
 		/* TODO(pickfire): merge this into spawn() */
 		if (fork() == 0) {
 			setsid();
@@ -73,6 +65,8 @@ notify_send(char *cmt)
 			perror(" failed");
 			exit(0);
 		}
+	} else {
+		fprintf(stdout,"%s\n",cmt);
 	}
 
 	if (strcmp(notifyext, "")) /* extra commands to use */
@@ -97,7 +91,7 @@ remaining_time(int sigint)
 void
 usage(void)
 {
-	die("usage: %s [-e notifyext] [-n notifycmd] [-v]\n", argv0);
+	die("usage: %s [-n notifycmd] [-e notifyext]  [-v]\n", argv0);
 }
 
 int
