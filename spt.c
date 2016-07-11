@@ -5,6 +5,9 @@
 #include <string.h>
 #include <unistd.h>
 #include <signal.h>
+#ifdef NOTIFY
+#include <libnotify/notify.h>
+#endif /* NOTIFY */
 
 #include "arg.h"
 
@@ -24,7 +27,7 @@ static int i, timecount;
 
 /* function declarations */
 static void die(const char *errstr, ...);
-static void spawn(char *);
+static void spawn(char *, char *);
 static void notify_send(char *);
 static void remaining_time(int);
 static void usage(void);
@@ -42,11 +45,12 @@ die(const char *errstr, ...)
 }
 
 void
-spawn(char *cmd)
+spawn(char *cmd, char *cmt)
 {
 	if (fork() == 0) {
 		setsid();
-		execvp("sh", (char *const []){"/bin/sh", "-c", cmd, 0});
+		//execvp("sh", (char *const []){"/bin/sh", "-c", cmd, cmt, NULL});
+		execvp(cmd, (char *const []){cmd,cmt, NULL});
 		fprintf(stderr, "spt: execvp %s", cmd);
 		perror(" failed");
 		exit(0);
@@ -56,21 +60,21 @@ spawn(char *cmd)
 void
 notify_send(char *cmt)
 {
-	if (strcmp(notifycmd, "")) {
-		/* TODO(pickfire): merge this into spawn() */
-		if (fork() == 0) {
-			setsid();
-			execlp(notifycmd, "spt", cmt, NULL);
-			fprintf(stderr, "spt: execlp %s", notifycmd);
-			perror(" failed");
-			exit(0);
-		}
-	} else {
-		fprintf(stdout,"%s\n",cmt);
+	if (!strcmp(notifycmd, "libnotify")) { /* use libnotify */
+#ifdef NOTIFY
+		notify_init("spt");
+		NotifyNotification *n = notify_notification_new("spt", cmt, \
+					"dialog-information");
+		notify_notification_show(n, NULL);
+		g_object_unref(G_OBJECT(n));
+		notify_uninit();
+#endif /* NOTIFY */
+	} else if (strcmp(notifycmd, "")) {
+		spawn(notifycmd, cmt);
 	}
 
 	if (strcmp(notifyext, "")) /* extra commands to use */
-		spawn(notifyext);
+		spawn(notifyext, NULL);
 }
 
 void
@@ -91,7 +95,7 @@ remaining_time(int sigint)
 void
 usage(void)
 {
-	die("usage: %s [-n notifycmd] [-e notifyext]  [-v]\n", argv0);
+	die("usage: %s [-e notifyext] [-n notifycmd] [-v]\n", argv0);
 }
 
 int
@@ -117,7 +121,9 @@ main(int argc, char *argv[])
 	}
 
 run:
-	notify_send(timers[i].cmt);
+	//if (fork() == 0) {
+		notify_send(timers[i].cmt);
+	//}
 
 	for (timecount = 0; timecount < timers[i].tmr; timecount++) {
 		sleep(1);

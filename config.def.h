@@ -1,7 +1,7 @@
 /* See LICENSE file for copyright and license details. */
 
-/* Notification */
-static char *notifycmd = ""; /* Use libnotify or given command */
+/* Notification, replace libnotify if you don't want it */
+static char *notifycmd = ""; /* Use libnotify or command given*/
 static char *notifyext = ""; /* Notify with extra command (eg. play an alarm) */
 
 /*
