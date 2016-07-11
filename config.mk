@@ -7,10 +7,13 @@ VERSION = 0.1
 PREFIX = /usr/local
 MANPREFIX = ${PREFIX}/share/man
 
-# libnotify - comment if you don't want it (config.h too)
-INCS = -I. -I/usr/include `pkg-config --cflags libnotify`
-LIBS = -L/usr/lib `pkg-config --libs libnotify`
+INCS = -I. -I/usr/include
+LIBS = -L/usr/lib
+
+# libnotify, comment if you don't want it
 DEFS = -DNOTIFY
+INCS+= `pkg-config --cflags libnotify`
+LIBS+= `pkg-config --libs libnotify`
 
 # flags
 CPPFLAGS = -DVERSION=\"${VERSION}\"
@@ -18,4 +21,4 @@ CFLAGS += -g -std=c99 -pedantic -Wall -Os ${INCS} ${DEFS} ${CPPFLAGS}
 LDFLAGS += -g ${LIBS}
 
 # compiler and linker
-# CC = cc
+CC ?= cc

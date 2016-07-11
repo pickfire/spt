@@ -1,7 +1,7 @@
 /* See LICENSE file for copyright and license details. */
 
-/* Notification, replace libnotify if you don't want it */
-static char *notifycmd = "libnotify"; /* Use libnotify or command given*/
+/* Notification, remove DNOTIFY in config.mk if you don't want it */
+static char *notifycmd = ""; /* Uses given command if not compiled by DNOTIFY */
 static char *notifyext = ""; /* Notify with extra command (eg. play an alarm) */
 
 /*

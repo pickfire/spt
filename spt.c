@@ -27,9 +27,9 @@ static int i, timecount;
 
 /* function declarations */
 static void die(const char *errstr, ...);
-static void spawn(char *, char *);
-static void notify_send(char *);
-static void remaining_time(int);
+static void spawn(char *cmd, char *cmt);
+static void notify_send(char *cmt);
+static void remaining_time(int sigint);
 static void usage(void);
 
 /* functions implementations */
@@ -59,18 +59,17 @@ spawn(char *cmd, char *cmt)
 void
 notify_send(char *cmt)
 {
-	if (!strcmp(notifycmd, "libnotify")) { /* use libnotify */
 #ifdef NOTIFY
-		notify_init("spt");
-		NotifyNotification *n = notify_notification_new("spt", cmt, \
-					"dialog-information");
-		notify_notification_show(n, NULL);
-		g_object_unref(G_OBJECT(n));
-		notify_uninit();
-#endif /* NOTIFY */
-	} else if (strcmp(notifycmd, "")) {
+	notify_init("spt");
+	NotifyNotification *n = notify_notification_new("spt", cmt, \
+				"dialog-information");
+	notify_notification_show(n, NULL);
+	g_object_unref(G_OBJECT(n));
+	notify_uninit();
+#else
+	if (strcmp(notifycmd, ""))
 		spawn(notifycmd, cmt);
-	}
+#endif /* NOTIFY */
 
 	if (strcmp(notifyext, "")) /* extra commands to use */
 		spawn(notifyext, NULL);
