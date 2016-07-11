@@ -27,7 +27,7 @@ static int i, timecount;
 
 /* function declarations */
 static void die(const char *errstr, ...);
-static void spawn(char *);
+static void spawn(char *, char *);
 static void notify_send(char *);
 static void remaining_time(int);
 static void usage(void);
@@ -45,13 +45,13 @@ die(const char *errstr, ...)
 }
 
 void
-spawn(char *cmd)
+spawn(char *cmd, char *cmt)
 {
 	if (fork() == 0) {
 		setsid();
-		execvp("sh", (char *const []){"/bin/sh", "-c", cmd, 0});
+		execvp("sh", (char *const []){"/bin/sh", "-c", cmd, cmt, NULL});
 		fprintf(stderr, "spt: execvp %s", cmd);
-		perror(" failed");
+		perror(" failed"); /* 2 errors report? */
 		exit(0);
 	}
 }
@@ -69,25 +69,19 @@ notify_send(char *cmt)
 		notify_uninit();
 #endif /* NOTIFY */
 	} else if (strcmp(notifycmd, "")) {
-		/* TODO(pickfire): merge this into spawn() */
-			setsid();
-			execlp(notifycmd, "spt", cmt, NULL);
-			fprintf(stderr, "spt: execlp %s", notifycmd);
-			perror(" failed");
-			exit(0);
+		spawn(notifycmd, cmt);
 	}
 
 	if (strcmp(notifyext, "")) /* extra commands to use */
-		spawn(notifyext);
+		spawn(notifyext, NULL);
 }
 
 void
 remaining_time(int sigint)
 {
 	char remainingtext[17];
-	if (signal(SIGUSR1, SIG_IGN) != SIG_IGN) {
+	if (signal(SIGUSR1, SIG_IGN) != SIG_IGN)
 		signal(SIGUSR1, remaining_time);
-	}
 
 	snprintf(remainingtext, 17, "Remaining: %02d:%02d\n",
 		 (timers[i].tmr - timecount) / 60,
@@ -120,18 +114,14 @@ main(int argc, char *argv[])
 			break;
 	} ARGEND;
 
-	if (signal(SIGUSR1, SIG_IGN) != SIG_IGN) {
+	if (signal(SIGUSR1, SIG_IGN) != SIG_IGN)
 		signal(SIGUSR1, remaining_time);
-	}
 
 run:
-	if (fork() == 0) {
-		notify_send(timers[i].cmt);
-	}
+	notify_send(timers[i].cmt);
 
-	for (timecount = 0; timecount < timers[i].tmr; timecount++) {
+	for (timecount = 0; timecount < timers[i].tmr; timecount++)
 		sleep(1);
-	}
 
 	i + 1 >= LEN(timers) ? i = 0 : i++; /* i infinal loop */
 	goto run;
