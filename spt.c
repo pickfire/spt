@@ -14,7 +14,15 @@
 char *argv0;
 
 /* macros */
-#define LEN(a)        (sizeof(a) / sizeof(a[0]))
+#define LEN(a)  (sizeof(a) / sizeof(a[0]))
+#define SPAWN(cmd)	if (fork() == 0) {\
+				setsid();\
+				cmd;\
+				die("spt: spawn\n");\
+				perror(" failed");\
+				exit(0);\
+			}
+
 
 typedef struct {
 	unsigned int tmr;
@@ -27,7 +35,6 @@ static int i, timecount;
 
 /* function declarations */
 static void die(const char *errstr, ...);
-static void spawn(char *cmd, char *cmt);
 static void notify_send(char *cmt);
 static void remaining_time(int sigint);
 static void usage(void);
@@ -45,18 +52,6 @@ die(const char *errstr, ...)
 }
 
 void
-spawn(char *cmd, char *cmt)
-{
-	if (fork() == 0) {
-		setsid();
-		execvp("sh", (char *const []){"/bin/sh", "-c", cmd, cmt, NULL});
-		fprintf(stderr, "spt: execvp %s", cmd);
-		perror(" failed"); /* 2 errors report? */
-		exit(0);
-	}
-}
-
-void
 notify_send(char *cmt)
 {
 #ifdef NOTIFY
@@ -67,12 +62,12 @@ notify_send(char *cmt)
 	g_object_unref(G_OBJECT(n));
 	notify_uninit();
 #else
-	if (strcmp(notifycmd, ""))
-		spawn(notifycmd, cmt);
+	if (strcmp(notifycmd, "")) /* TODO: call function in config.h */
+		SPAWN(execlp(notifycmd, notifycmd, "spt", cmt, NULL))
 #endif /* NOTIFY */
 
 	if (strcmp(notifyext, "")) /* extra commands to use */
-		spawn(notifyext, NULL);
+		SPAWN(execvp("sh", (char *const []){"/bin/sh", "-c", notifyext, NULL}))
 }
 
 void
