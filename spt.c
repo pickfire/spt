@@ -123,7 +123,7 @@ run:
 	for (timecount = 0; timecount < timers[i].tmr; timecount++)
 		sleep(1);
 
-	i + 1 >= LEN(timers) ? i = 0 : i++; /* i infinal loop */
+	i < LEN(timers) ? i++ : i = 0; /* i infinal loop */
 	goto run;
 
 	return 0;
