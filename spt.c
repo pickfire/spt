@@ -15,13 +15,6 @@ char *argv0;
 
 /* macros */
 #define LEN(a)  (sizeof(a) / sizeof(a[0]))
-#define SPAWN(cmd)	if (fork() == 0) {\
-				setsid();\
-				cmd;\
-				die("spt: spawn\n");\
-				perror(" failed");\
-				exit(0);\
-			}
 
 
 typedef struct {
@@ -35,6 +28,7 @@ static int i, timecount;
 
 /* function declarations */
 static void die(const char *errstr, ...);
+static void spawn(char *cmd, char *cmt);
 static void notify_send(char *cmt);
 static void remaining_time(int sigint);
 static void usage(void);
@@ -48,7 +42,19 @@ die(const char *errstr, ...)
 	va_start(ap, errstr);
 	vfprintf(stderr, errstr, ap);
 	va_end(ap);
-	exit(EXIT_FAILURE);
+	exit(1);
+}
+
+void
+spawn(char *cmd, char *cmt)
+{
+	if (fork() == 0) {
+		setsid();
+		execlp(cmd, cmd, "spt", cmt, NULL);
+		die("spt: execlp %s\n", cmd);
+		perror(" failed");
+		exit(0);
+	}
 }
 
 void
@@ -63,25 +69,25 @@ notify_send(char *cmt)
 	notify_uninit();
 #else
 	if (strcmp(notifycmd, "")) /* TODO: call function in config.h */
-		SPAWN(execlp(notifycmd, notifycmd, "spt", cmt, NULL))
+		spawn(notifycmd, cmt);
 #endif /* NOTIFY */
 
 	if (strcmp(notifyext, "")) /* extra commands to use */
-		SPAWN(execvp("sh", (char *const []){"/bin/sh", "-c", notifyext, NULL}))
+		spawn(notifyext, NULL);
 }
 
 void
 remaining_time(int sigint)
 {
-	char remainingtext[17];
+	char buf[17];
 	if (signal(SIGUSR1, SIG_IGN) != SIG_IGN)
 		signal(SIGUSR1, remaining_time);
 
-	snprintf(remainingtext, 17, "Remaining: %02d:%02d\n",
+	snprintf(buf, 17, "Remaining: %02d:%02d\n",
 		 (timers[i].tmr - timecount) / 60,
 		 (timers[i].tmr - timecount) % 60);
 
-	notify_send(remainingtext);
+	notify_send(buf);
 }
 
 void
