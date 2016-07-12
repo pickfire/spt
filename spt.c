@@ -24,13 +24,14 @@ typedef struct {
 
 #include "config.h"
 
-static int i, timecount;
+static int i, timecount, inc;
 
 /* function declarations */
 static void die(const char *errstr, ...);
 static void spawn(char *cmd, char *cmt);
 static void notify_send(char *cmt);
 static void remaining_time(int sigint);
+static void toggle(int sigint);
 static void usage(void);
 
 /* functions implementations */
@@ -91,6 +92,13 @@ remaining_time(int sigint)
 }
 
 void
+toggle(int sigint) {
+	if (signal(SIGUSR2, SIG_IGN) != SIG_IGN)
+		signal(SIGUSR2, toggle);
+	inc ^= 1;
+}
+
+void
 usage(void)
 {
 	die("usage: %s [-e notifyext] [-n notifycmd] [-v]\n", argv0);
@@ -99,6 +107,8 @@ usage(void)
 int
 main(int argc, char *argv[])
 {
+	inc = 1;
+
 	ARGBEGIN {
 		case 'e':
 			notifyext = EARGF(usage());
@@ -116,14 +126,16 @@ main(int argc, char *argv[])
 
 	if (signal(SIGUSR1, SIG_IGN) != SIG_IGN)
 		signal(SIGUSR1, remaining_time);
+	if (signal(SIGUSR2, SIG_IGN) != SIG_IGN)
+		signal(SIGUSR2, toggle);
 
 run:
 	notify_send(timers[i].cmt);
 
-	for (timecount = 0; timecount < timers[i].tmr; timecount++)
+	for (timecount = 0; timecount < timers[i].tmr; timecount += inc)
 		sleep(1);
 
-	i < LEN(timers) ? i++ : i = 0; /* i infinal loop */
+	i = (i < LEN(timers)) ? i+1 : 0; /* i infinal loop */
 	goto run;
 
 	return 0;
