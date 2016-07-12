@@ -24,7 +24,7 @@ typedef struct {
 
 #include "config.h"
 
-static int i, timecount;
+static int i, timecount, increment;
 
 /* function declarations */
 static void die(const char *errstr, ...);
@@ -80,14 +80,26 @@ void
 remaining_time(int sigint)
 {
 	char buf[17];
-	if (signal(SIGUSR1, SIG_IGN) != SIG_IGN)
-		signal(SIGUSR1, remaining_time);
+	//if (signal(SIGUSR1, SIG_IGN) != SIG_IGN)
+	//	signal(SIGUSR1, remaining_time);
 
 	snprintf(buf, 17, "Remaining: %02d:%02d\n",
-		 (timers[i].tmr - timecount) / 60,
-		 (timers[i].tmr - timecount) % 60);
+		  (timers[i].tmr - timecount) / 60,
+		  (timers[i].tmr - timecount) % 60);
 
 	notify_send(buf);
+}
+
+void 
+toggle_pause(int sigint) {
+  	//if (increment) {
+  	//  notify_send("Paused");
+  	//  increment = 0;
+  	//else {
+  	//  notify_send("Resumed");
+  	//  increment = 1;
+  	//}
+      	increment = increment ? 0 : 1 ;
 }
 
 void
@@ -99,6 +111,8 @@ usage(void)
 int
 main(int argc, char *argv[])
 {
+	increment = 1;
+
 	ARGBEGIN {
 		case 'e':
 			notifyext = EARGF(usage());
@@ -116,14 +130,16 @@ main(int argc, char *argv[])
 
 	if (signal(SIGUSR1, SIG_IGN) != SIG_IGN)
 		signal(SIGUSR1, remaining_time);
+	if (signal(SIGUSR2, SIG_IGN) != SIG_IGN)
+		signal(SIGUSR2, toggle_pause);
 
 run:
 	notify_send(timers[i].cmt);
 
-	for (timecount = 0; timecount < timers[i].tmr; timecount++)
+	for (timecount = 0; timecount < timers[i].tmr; timecount += increment)
 		sleep(1);
 
-	i < LEN(timers) ? i++ : i = 0; /* i infinal loop */
+	i = i < LEN(timers) ? i+1 : 0; /* i infinal loop */
 	goto run;
 
 	return 0;
