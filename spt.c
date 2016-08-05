@@ -135,7 +135,7 @@ run:
 	for (timecount = 0; timecount < timers[i].tmr; timecount += inc)
 		sleep(1);
 
-	i = (i < LEN(timers)) ? i+1 : 0; /* i infinal loop */
+	if (++i >= LEN(timers)) i = 0; /* i infinal loop */
 	goto run;
 
 	return 0;
