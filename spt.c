@@ -129,14 +129,11 @@ main(int argc, char *argv[])
 	if (signal(SIGUSR2, SIG_IGN) != SIG_IGN)
 		signal(SIGUSR2, toggle);
 
-run:
-	notify_send(timers[i].cmt);
-
-	for (timecount = 0; timecount < timers[i].tmr; timecount += inc)
-		sleep(1);
-
-	if (++i >= LEN(timers)) i = 0; /* i infinal loop */
-	goto run;
+	for (i = 0; ; i = (i + 1) % LEN(timers)) {
+		notify_send(timers[i].cmt);
+		for (timecount = 0; timecount < timers[i].tmr; timecount += inc)
+			sleep(1);
+	}
 
 	return 0;
 }
