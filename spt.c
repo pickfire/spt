@@ -24,7 +24,7 @@ typedef struct {
 
 #include "config.h"
 
-static int i, timecount, inc;
+static int i, timecount, suspend;
 
 /* function declarations */
 static void die(const char *errstr, ...);
@@ -95,7 +95,8 @@ void
 toggle(int sigint) {
 	if (signal(SIGUSR2, SIG_IGN) != SIG_IGN)
 		signal(SIGUSR2, toggle);
-	inc ^= 1;
+
+	suspend ^= 1;
 }
 
 void
@@ -107,7 +108,7 @@ usage(void)
 int
 main(int argc, char *argv[])
 {
-	inc = 1;
+	suspend = 0;
 
 	ARGBEGIN {
 		case 'e':
@@ -131,8 +132,14 @@ main(int argc, char *argv[])
 
 	for (i = 0; ; i = (i + 1) % LEN(timers)) {
 		notify_send(timers[i].cmt);
-		for (timecount = 0; timecount < timers[i].tmr; timecount += inc)
-			sleep(1);
+		timecount = 0;
+		while (timecount < timers[i].tmr)
+			if (suspend)
+				pause();
+			else {
+				sleep(1);
+				timecount++;
+			}
 	}
 
 	return 0;
