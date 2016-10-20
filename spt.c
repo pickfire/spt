@@ -132,8 +132,8 @@ main(int argc, char *argv[])
 
 	for (i = 0; ; i = (i + 1) % LEN(timers)) {
 		notify_send(timers[i].cmt);
-		timecount = 0;
-		while (timecount < timers[i].tmr)
+
+		for (timecount = 0; timecount < timers[i].tmr;)
 			if (suspend)
 				pause();
 			else {
