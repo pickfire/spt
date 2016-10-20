@@ -137,8 +137,8 @@ main(int argc, char *argv[])
 			if (suspend)
 				pause();
 			else {
-				sleep(1);
 				timecount++;
+				sleep(1);
 			}
 	}
 
