@@ -108,6 +108,7 @@ usage(void)
 int
 main(int argc, char *argv[])
 {
+	sigset_t *emptymask = 0;
 	suspend = 0;
 
 	ARGBEGIN {
@@ -135,7 +136,7 @@ main(int argc, char *argv[])
 		timecount = 0;
 		while (timecount < timers[i].tmr)
 			if (suspend)
-				pause();
+				sigsuspend(emptymask);
 			else {
 				sleep(1);
 				timecount++;
