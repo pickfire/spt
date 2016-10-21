@@ -16,7 +16,7 @@ INCS+= `pkg-config --cflags libnotify`
 LIBS+= `pkg-config --libs libnotify`
 
 # flags
-CPPFLAGS = -DVERSION=\"${VERSION}\"
+CPPFLAGS = -DVERSION=\"${VERSION}\" -D_POSIX_C_SOURCE=1
 CFLAGS += -g -std=c99 -pedantic -Wall -Os ${INCS} ${DEFS} ${CPPFLAGS}
 LDFLAGS += -g ${LIBS}
 
