@@ -81,9 +81,9 @@ void
 remaining_time(int sigint)
 {
 	char buf[17];
-	if (signal(SIGUSR1, SIG_IGN) != SIG_IGN)
-		signal(SIGUSR1, remaining_time);
 
+	// FIXME: signal handlers should only do very few things, like
+	// setting volatile sig_atomic_t
 	snprintf(buf, 17, "Remaining: %02d:%02d\n",
 		 (timers[i].tmr - timecount) / 60,
 		 (timers[i].tmr - timecount) % 60);
@@ -93,9 +93,6 @@ remaining_time(int sigint)
 
 void
 toggle(int sigint) {
-	if (signal(SIGUSR2, SIG_IGN) != SIG_IGN)
-		signal(SIGUSR2, toggle);
-
 	suspend ^= 1;
 }
 
@@ -108,6 +105,8 @@ usage(void)
 int
 main(int argc, char *argv[])
 {
+	struct sigaction act;
+	sigset_t *emptymask = 0;
 	suspend = 0;
 
 	ARGBEGIN {
@@ -125,17 +124,34 @@ main(int argc, char *argv[])
 			break;
 	} ARGEND;
 
-	if (signal(SIGUSR1, SIG_IGN) != SIG_IGN)
-		signal(SIGUSR1, remaining_time);
-	if (signal(SIGUSR2, SIG_IGN) != SIG_IGN)
-		signal(SIGUSR2, toggle);
+	/* add SIGUSR1 handler: remaining_time */
+	act.sa_handler = &remaining_time;
+	act.sa_flags = 0;
+
+	if (sigemptyset(&act.sa_mask) != 0)
+		die("cannot initialize SIGUSR1 sa_mask\n");
+
+	if (sigaction(SIGUSR1, &act, NULL) < 0)
+		die("cannot associate SIGUSR1 to handler\n");
+
+	act.sa_handler = &toggle;
+
+	/* add SIGUSR2 handler: toggle */
+	act.sa_handler = &toggle;
+	act.sa_flags = 0;
+
+	if (sigemptyset(&act.sa_mask) != 0)
+		die("cannot initialize SIGUSR2 sa_mask\n");
+
+	if (sigaction(SIGUSR2, &act, NULL) < 0)
+		die("cannot associate SIGUSR2 to handler\n");
 
 	for (i = 0; ; i = (i + 1) % LEN(timers)) {
 		notify_send(timers[i].cmt);
 		timecount = 0;
 		while (timecount < timers[i].tmr)
 			if (suspend)
-				pause();
+				sigsuspend(emptymask);
 			else {
 				sleep(1);
 				timecount++;
