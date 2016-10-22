@@ -81,9 +81,9 @@ void
 remaining_time(int sigint)
 {
 	char buf[17];
-	if (signal(SIGUSR1, SIG_IGN) != SIG_IGN)
-		signal(SIGUSR1, remaining_time);
 
+	// FIXME: signal handlers should only do very few things, like
+	// setting volatile sig_atomic_t
 	snprintf(buf, 17, "Remaining: %02d:%02d\n",
 		 (timers[i].tmr - timecount) / 60,
 		 (timers[i].tmr - timecount) % 60);
@@ -93,9 +93,6 @@ remaining_time(int sigint)
 
 void
 toggle(int sigint) {
-	if (signal(SIGUSR2, SIG_IGN) != SIG_IGN)
-		signal(SIGUSR2, toggle);
-
 	suspend ^= 1;
 }
 
@@ -108,8 +105,8 @@ usage(void)
 int
 main(int argc, char *argv[])
 {
-	sigset_t *emptymask = 0;
-	suspend = 0;
+	struct sigaction sa;
+	sigset_t emptymask;
 
 	ARGBEGIN {
 		case 'e':
@@ -126,17 +123,28 @@ main(int argc, char *argv[])
 			break;
 	} ARGEND;
 
-	if (signal(SIGUSR1, SIG_IGN) != SIG_IGN)
-		signal(SIGUSR1, remaining_time);
-	if (signal(SIGUSR2, SIG_IGN) != SIG_IGN)
-		signal(SIGUSR2, toggle);
+	/* add SIGUSR1 handler: remaining_time */
+	sa.sa_handler = remaining_time;
+	sigemptyset(&sa.sa_mask);
+	sa.sa_flags = 0;
+
+	if (sigaction(SIGUSR1, &sa, NULL) == -1)
+		die("cannot associate SIGUSR1 to handler\n");
+
+	/* add SIGUSR2 handler: toggle */
+	sa.sa_handler = toggle;
+	sigemptyset(&sa.sa_mask);
+	sa.sa_flags = 0;
+
+	if (sigaction(SIGUSR2, &sa, NULL) == -1)
+		die("cannot associate SIGUSR2 to handler\n");
 
 	for (i = 0; ; i = (i + 1) % LEN(timers)) {
 		notify_send(timers[i].cmt);
 		timecount = 0;
 		while (timecount < timers[i].tmr)
 			if (suspend)
-				sigsuspend(emptymask);
+				sigsuspend(&emptymask);
 			else {
 				sleep(1);
 				timecount++;
