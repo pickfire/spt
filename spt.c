@@ -24,7 +24,7 @@ typedef struct {
 
 #include "config.h"
 
-static int i, timecount, suspend;
+volatile static sig_atomic_t suspend, displaytime;
 
 /* function declarations */
 static void die(const char *errstr, ...);
@@ -78,17 +78,21 @@ notify_send(char *cmt)
 }
 
 void
-remaining_time(int sigint)
+display_remaining_time(int remainingtime)
 {
 	char buf[17];
 
-	// FIXME: signal handlers should only do very few things, like
-	// setting volatile sig_atomic_t
 	snprintf(buf, 17, "Remaining: %02d:%02d\n",
-		 (timers[i].tmr - timecount) / 60,
-		 (timers[i].tmr - timecount) % 60);
+		 remainingtime / 60,
+		 remainingtime % 60);
 
 	notify_send(buf);
+}
+
+void
+remaining_time(int sigint)
+{
+	displaytime = 1;
 }
 
 void
@@ -107,6 +111,7 @@ main(int argc, char *argv[])
 {
 	struct sigaction sa;
 	sigset_t emptymask;
+	int i, timecount;
 
 	ARGBEGIN {
 		case 'e':
@@ -143,6 +148,11 @@ main(int argc, char *argv[])
 		notify_send(timers[i].cmt);
 		timecount = 0;
 		while (timecount < timers[i].tmr)
+			if (displaytime) {
+				display_remaining_time(timecount);
+				displaytime = 0;
+			}
+
 			if (suspend)
 				sigsuspend(&emptymask);
 			else {
