@@ -24,14 +24,15 @@ typedef struct {
 
 #include "config.h"
 
-static int i, timecount, suspend;
+volatile static sig_atomic_t display, suspend;
 
 /* function declarations */
 static void die(const char *errstr, ...);
 static void spawn(char *cmd, char *cmt);
 static void notify_send(char *cmt);
-static void remaining_time(int sigint);
-static void toggle(int sigint);
+static void display_time(int timecount);
+static void toggle_display(int sigint);
+static void toggle_suspend(int sigint);
 static void usage(void);
 
 /* functions implementations */
@@ -78,21 +79,27 @@ notify_send(char *cmt)
 }
 
 void
-remaining_time(int sigint)
+display_time(int timecount)
 {
 	char buf[17];
 
-	// FIXME: signal handlers should only do very few things, like
-	// setting volatile sig_atomic_t
 	snprintf(buf, 17, "Remaining: %02d:%02d\n",
-		 (timers[i].tmr - timecount) / 60,
-		 (timers[i].tmr - timecount) % 60);
+		 timecount / 60,
+		 timecount % 60);
 
 	notify_send(buf);
+	display = 0;
 }
 
 void
-toggle(int sigint) {
+toggle_display(int sigint)
+{
+	display = 1;
+}
+
+void
+toggle_suspend(int sigint)
+{
 	suspend ^= 1;
 }
 
@@ -107,6 +114,7 @@ main(int argc, char *argv[])
 {
 	struct sigaction sa;
 	sigset_t emptymask;
+	int i, timecount;
 
 	ARGBEGIN {
 		case 'e':
@@ -124,7 +132,7 @@ main(int argc, char *argv[])
 	} ARGEND;
 
 	/* add SIGUSR1 handler: remaining_time */
-	sa.sa_handler = remaining_time;
+	sa.sa_handler = toggle_display;
 	sigemptyset(&sa.sa_mask);
 	sa.sa_flags = 0;
 
@@ -132,7 +140,7 @@ main(int argc, char *argv[])
 		die("cannot associate SIGUSR1 to handler\n");
 
 	/* add SIGUSR2 handler: toggle */
-	sa.sa_handler = toggle;
+	sa.sa_handler = toggle_suspend;
 	sigemptyset(&sa.sa_mask);
 	sa.sa_flags = 0;
 
@@ -142,13 +150,17 @@ main(int argc, char *argv[])
 	for (i = 0; ; i = (i + 1) % LEN(timers)) {
 		notify_send(timers[i].cmt);
 		timecount = 0;
-		while (timecount < timers[i].tmr)
+		while (timecount < timers[i].tmr) {
+			if (display)
+				display_time(timecount);
+
 			if (suspend)
 				sigsuspend(&emptymask);
 			else {
 				sleep(1);
 				timecount++;
 			}
+		}
 	}
 
 	return 0;
