@@ -111,7 +111,7 @@ main(int argc, char *argv[])
 {
 	struct sigaction sa;
 	sigset_t emptymask;
-	int i, timecount;
+	int i, remainingtime;
 
 	ARGBEGIN {
 		case 'e':
@@ -146,19 +146,18 @@ main(int argc, char *argv[])
 
 	for (i = 0; ; i = (i + 1) % LEN(timers)) {
 		notify_send(timers[i].cmt);
-		timecount = 0;
-		while (timecount < timers[i].tmr)
+		remainingtime = timers[i].tmr;
+		while (remainingtime) {
 			if (displaytime) {
-				display_remaining_time(timecount);
+				display_remaining_time(remainingtime);
 				displaytime = 0;
 			}
 
 			if (suspend)
 				sigsuspend(&emptymask);
-			else {
-				sleep(1);
-				timecount++;
-			}
+			else
+				remainingtime = sleep(remainingtime);
+		}
 	}
 
 	return 0;
