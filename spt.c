@@ -5,6 +5,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <signal.h>
+#include <time.h>
 #ifdef NOTIFY
 #include <libnotify/notify.h>
 #endif /* NOTIFY */
@@ -112,9 +113,10 @@ usage(void)
 int
 main(int argc, char *argv[])
 {
+	struct timespec remaining;
 	struct sigaction sa;
 	sigset_t emptymask;
-	int i, timecount;
+	int i;
 
 	ARGBEGIN {
 		case 'e':
@@ -149,17 +151,17 @@ main(int argc, char *argv[])
 
 	for (i = 0; ; i = (i + 1) % LEN(timers)) {
 		notify_send(timers[i].cmt);
-		timecount = 0;
-		while (timecount < timers[i].tmr) {
+		remaining.tv_sec = timers[i].tmr;
+		remaining.tv_nsec = 0;
+		while (remaining.tv_sec) {
 			if (display)
-				display_time(timecount);
+				display_time(remaining.tv_sec);
 
 			if (suspend)
 				sigsuspend(&emptymask);
-			else {
-				sleep(1);
-				timecount++;
-			}
+			else
+				if (nanosleep(&remaining, &remaining) == 0)
+					remaining.tv_sec = remaining.tv_nsec = 0;
 		}
 	}
 
