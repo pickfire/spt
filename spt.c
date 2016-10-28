@@ -124,7 +124,7 @@ main(int argc, char *argv[])
 			notifycmd = EARGF(usage());
 			break;
 		case 'v':
-			die("spt " VERSION " © 2015 spt engineers, "
+			die("spt " VERSION " © 2015-2016 spt engineers, "
 			    "see LICENSE for details\n");
 		default:
 			usage();
