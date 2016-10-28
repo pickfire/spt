@@ -30,7 +30,7 @@ volatile static sig_atomic_t display, suspend;
 static void die(const char *errstr, ...);
 static void spawn(char *cmd, char *cmt);
 static void notify_send(char *cmt);
-static void display_time(int timecount);
+static void display_time(int remaining);
 static void toggle_display(int sigint);
 static void toggle_suspend(int sigint);
 static void usage(void);
@@ -79,13 +79,13 @@ notify_send(char *cmt)
 }
 
 void
-display_time(int timecount)
+display_time(int remaining)
 {
 	char buf[17];
 
 	snprintf(buf, 17, "Remaining: %02d:%02d\n",
-		 timecount / 60,
-		 timecount % 60);
+		 remaining / 60,
+		 remaining % 60);
 
 	notify_send(buf);
 	display = 0;
@@ -114,7 +114,7 @@ main(int argc, char *argv[])
 {
 	struct sigaction sa;
 	sigset_t emptymask;
-	int i, timecount;
+	int i, remaining;
 
 	ARGBEGIN {
 		case 'e':
@@ -149,17 +149,15 @@ main(int argc, char *argv[])
 
 	for (i = 0; ; i = (i + 1) % LEN(timers)) {
 		notify_send(timers[i].cmt);
-		timecount = 0;
-		while (timecount < timers[i].tmr) {
+		remaining = timers[i].tmr;
+		while (remaining) {
 			if (display)
-				display_time(timecount);
+				display_time(remaining);
 
 			if (suspend)
 				sigsuspend(&emptymask);
-			else {
-				sleep(1);
-				timecount++;
-			}
+			else
+				remaining = sleep(remaining);
 		}
 	}
 
