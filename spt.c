@@ -31,7 +31,7 @@ volatile static sig_atomic_t display, suspend;
 static void die(const char *errstr, ...);
 static void spawn(char *cmd, char *cmt);
 static void notify_send(char *cmt);
-static void display_time(int timecount);
+static void display_state(int remaining, int suspend);
 static void toggle_display(int sigint);
 static void toggle_suspend(int sigint);
 static void usage(void);
@@ -80,13 +80,14 @@ notify_send(char *cmt)
 }
 
 void
-display_time(int timecount)
+display_state(int remaining, int suspend)
 {
-	char buf[17];
+	char buf[22];
 
-	snprintf(buf, 17, "Remaining: %02d:%02d\n",
-		 timecount / 60,
-		 timecount % 60);
+	snprintf(buf, 22, "Remaining: %02d:%02d %s\n",
+		 remaining / 60,
+		 remaining % 60,
+		 (suspend) ? "◼" : "▶");
 
 	notify_send(buf);
 	display = 0;
@@ -155,7 +156,7 @@ main(int argc, char *argv[])
 		remaining.tv_nsec = 0;
 		while (remaining.tv_sec) {
 			if (display)
-				display_time(remaining.tv_sec);
+				display_state(remaining.tv_sec, suspend);
 
 			if (suspend)
 				sigsuspend(&emptymask);
