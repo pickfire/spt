@@ -63,16 +63,17 @@ spawn(char *cmd, char *cmt)
 void
 notify_send(char *cmt)
 {
-#ifdef NOTIFY
-	notify_init("spt");
-	NotifyNotification *n = notify_notification_new("spt", cmt, \
-				"dialog-information");
-	notify_notification_show(n, NULL);
-	g_object_unref(G_OBJECT(n));
-	notify_uninit();
-#else
-	if (strcmp(notifycmd, "")) /* TODO: call function in config.h */
+	if (strcmp(notifycmd, ""))
 		spawn(notifycmd, cmt);
+#ifdef NOTIFY
+	else {
+		notify_init("spt");
+		NotifyNotification *n = notify_notification_new("spt", cmt, \
+					"dialog-information");
+		notify_notification_show(n, NULL);
+		g_object_unref(G_OBJECT(n));
+		notify_uninit();
+	}
 #endif /* NOTIFY */
 
 	if (strcmp(notifyext, "")) /* extra commands to use */
@@ -82,9 +83,9 @@ notify_send(char *cmt)
 void
 display_state(int remaining, int suspend)
 {
-	char buf[22];
+	char buf[21];
 
-	snprintf(buf, 22, "Remaining: %02d:%02d %s\n",
+	snprintf(buf, 21, "Remaining: %02d:%02d %s",
 		 remaining / 60,
 		 remaining % 60,
 		 (suspend) ? "◼" : "▶");
@@ -131,7 +132,6 @@ main(int argc, char *argv[])
 			    "see LICENSE for details\n");
 		default:
 			usage();
-			break;
 	} ARGEND;
 
 	/* add SIGUSR1 handler: remaining_time */
