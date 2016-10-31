@@ -150,6 +150,8 @@ main(int argc, char *argv[])
 	if (sigaction(SIGUSR2, &sa, NULL) == -1)
 		die("cannot associate SIGUSR2 to handler\n");
 
+	sigemptyset(&emptymask);
+
 	for (i = 0; ; i = (i + 1) % LEN(timers)) {
 		notify_send(timers[i].cmt);
 		remaining.tv_sec = timers[i].tmr;
