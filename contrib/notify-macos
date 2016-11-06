@@ -1,0 +1,6 @@
+#!/bin/sh
+# A notification wrapper for MacOS. It will appear in Notification
+# Center as owned by Script Editor.
+#
+# usage: spt -n ./notify-macos
+osascript -e "display notification \"$2\" with title \"$1\""
