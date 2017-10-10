@@ -118,7 +118,7 @@ main(int argc, char *argv[])
 	struct timespec remaining;
 	struct sigaction sa;
 	sigset_t emptymask;
-	int i;
+	int i, prevsuspend;
 
 	ARGBEGIN {
 		case 'e':
@@ -133,6 +133,8 @@ main(int argc, char *argv[])
 		default:
 			usage();
 	} ARGEND;
+
+	prevsuspend = suspend = 0;
 
 	/* add SIGUSR1 handler: remaining_time */
 	sa.sa_handler = toggle_display;
@@ -157,8 +159,11 @@ main(int argc, char *argv[])
 		remaining.tv_sec = timers[i].tmr;
 		remaining.tv_nsec = 0;
 		while (remaining.tv_sec) {
-			if (display)
+			if (display || prevsuspend != suspend) {
 				display_state(remaining.tv_sec, suspend);
+
+				prevsuspend = suspend;
+			}
 
 			if (suspend)
 				sigsuspend(&emptymask);
