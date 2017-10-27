@@ -159,7 +159,7 @@ main(int argc, char *argv[])
 		remaining.tv_sec = timers[i].tmr;
 		remaining.tv_nsec = 0;
 		while (remaining.tv_sec) {
-			if (display || prevsuspend != suspend) {
+			if (display || (prevsuspend != suspend && DISPLAY_TOGGLE)) {
 				display_state(remaining.tv_sec, suspend);
 
 				prevsuspend = suspend;

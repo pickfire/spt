@@ -15,6 +15,9 @@ DEFS = -DNOTIFY
 INCS+= `pkg-config --cflags libnotify`
 LIBS+= `pkg-config --libs libnotify`
 
+# set to 1 to display state on toggle
+DEFS+= -DDISPLAY_TOGGLE=0
+
 # flags
 CPPFLAGS = -DVERSION=\"${VERSION}\" -D_POSIX_C_SOURCE=199309
 CFLAGS += -g -std=c99 -pedantic -Wall -Os ${INCS} ${DEFS} ${CPPFLAGS}
