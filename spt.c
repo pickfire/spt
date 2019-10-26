@@ -51,12 +51,19 @@ die(const char *errstr, ...)
 void
 spawn(char *cmd, char *cmt)
 {
-	if (fork() == 0) {
-		setsid();
-		execlp(cmd, cmd, "spt", cmt, NULL);
-		die("spt: execlp %s\n", cmd);
-		perror(" failed");
-		exit(0);
+	pid_t childid = fork();
+	if (childid == 0) {
+		if(fork() == 0) {
+			setsid();
+			execlp(cmd, cmd, cmt, NULL);
+			die("spt: execlp %s\n", cmd);
+			perror(" failed");
+			exit(0);
+		} else {
+			_exit(EXIT_SUCCESS);
+		}
+	} else {
+		waitpid(childid, NULL, 0);
 	}
 }
 
