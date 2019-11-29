@@ -60,7 +60,7 @@ spawn(char *cmd, char *cmt)
 			perror(" failed");
 			exit(0);
 		} else {
-			_exit(EXIT_SUCCESS);
+			exit(0);
 		}
 	} else {
 		waitpid(childid, NULL, 0);
