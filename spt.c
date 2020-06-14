@@ -83,9 +83,9 @@ notify_send(char *cmt)
 void
 display_state(int remaining, int suspend)
 {
-	char buf[21];
+	char buf[29];
 
-	snprintf(buf, 21, "Remaining: %02d:%02d %s",
+	snprintf(buf, 29, "Remaining: %02d:%02d %s",
 		 remaining / 60,
 		 remaining % 60,
 		 (suspend) ? "◼" : "▶");
