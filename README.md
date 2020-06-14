@@ -3,13 +3,11 @@ spt - simple pomodoro timer
 spt is a simple timer that uses the pomodoro technique that doubles your
 efficiency.
 
-
 Features
 --------
 - Get the jobs done quicker than ever
 - Keeps you free like a dog
 - Able to show remaining time
-
 
 Installation
 ------------
@@ -23,12 +21,12 @@ as root):
 
 See the man pages for additional details.
 
-
 Configuration
 -------------
-The configuration of spt is done by creating a custom config.h
-and (re)compiling the source code.
-
+The configuration of spt is done by creating a custom config.h and
+(re)compiling the source code. By default, the timer runs by 4
+pomodoro timer (25 mins) with subsequent rests in between (15 mins)
+followed by a long rest (5 mins) in an infinite loop.
 
 Links
 -----
