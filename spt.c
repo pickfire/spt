@@ -29,7 +29,7 @@ volatile static sig_atomic_t display, suspend;
 
 /* function declarations */
 static void die(const char *errstr, ...);
-static void spawn(char *cmd, char *cmt);
+static void spawn(char *argv[]);
 static void notify_send(char *cmt);
 static void display_state(int remaining, int suspend);
 static void toggle_display(int sigint);
@@ -49,12 +49,12 @@ die(const char *errstr, ...)
 }
 
 void
-spawn(char *cmd, char *cmt)
+spawn(char *argv[])
 {
 	if (fork() == 0) {
 		setsid();
-		execlp(cmd, cmd, "spt", cmt, NULL);
-		die("spt: execlp %s\n", cmd);
+		execvp(argv[0], argv);
+		die("spt: execvp %s\n", argv[0]);
 		perror(" failed");
 		exit(0);
 	}
@@ -64,7 +64,7 @@ void
 notify_send(char *cmt)
 {
 	if (strcmp(notifycmd, ""))
-		spawn(notifycmd, cmt);
+		spawn((char *[]) { notifycmd, "spt", cmt, NULL });
 #ifdef NOTIFY
 	else {
 		notify_init("spt");
@@ -77,7 +77,7 @@ notify_send(char *cmt)
 #endif /* NOTIFY */
 
 	if (strcmp(notifyext, "")) /* extra commands to use */
-		spawn(notifyext, NULL);
+		spawn((char *[]) { "/bin/sh", "-c", notifyext, NULL });
 }
 
 void
