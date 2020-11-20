@@ -25,8 +25,8 @@ Configuration
 -------------
 The configuration of spt is done by creating a custom config.h and
 (re)compiling the source code. By default, the timer runs by 4
-pomodoro timer (25 mins) with subsequent rests in between (15 mins)
-followed by a long rest (5 mins) in an infinite loop.
+pomodoro timer (25 mins) with subsequent rests in between (5 mins)
+followed by a long rest (15 mins) in an infinite loop.
 
 Links
 -----
