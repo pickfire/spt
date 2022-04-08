@@ -18,5 +18,5 @@ static Timers timers[] = {
 	{      300,  "Time to start resting!"},
 	{     1500,  "Time to start working!"},
 	{      300,  "Time to start resting!"},
-	{      900,  "Time to take some nap!"},
+	{      900,  "Time to take a nap!"   },
 };
